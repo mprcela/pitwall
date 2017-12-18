@@ -15,28 +15,31 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/minus5/pitwall/monit"
 	"github.com/spf13/cobra"
 )
 
-// tailCmd represents the tail command
 var tailCmd = &cobra.Command{
 	Use:   "tail",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "tail logs in datacenter <dc> for <service>",
+	Long: `Tail logs in datacenter <dc> for <service>.
+  If services is missing it will list all available services in <dc>.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+  Examples:
+    monit tail haproxy
+    monit tail --dc pg1 haproxy
+    monit tail backend_api -i request_logger -t url,method
+    monit tail backend_api -i request_logger -a duration,status,code,lib
+    monit tail backend_api -a listic -e request_logger.go:30`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("tail called")
+		//fmt.Println("tail called")
+		monit.Tail("", "")
 	},
 }
 
 func init() {
-	monitCmd.AddCommand(tailCmd)
+	//monitCmd.AddCommand(tailCmd)
+	rootCmd.AddCommand(tailCmd)
 
 	// Here you will define your flags and configuration settings.
 
