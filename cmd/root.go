@@ -7,7 +7,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cfgFile string
+var (
+	path     string
+	registry string
+	dc       string
+	noGit    bool
+	service  string
+)
+
+//var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

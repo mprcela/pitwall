@@ -23,13 +23,6 @@ var deployCmd = &cobra.Command{
 	},
 }
 
-var (
-	path     string
-	registry string
-	dc       string
-	noGit    bool
-)
-
 func init() {
 	rootCmd.AddCommand(deployCmd)
 	deployCmd.Flags().StringVar(&path, "path", "~/work/pit/infrastructure", "infastructure project path")

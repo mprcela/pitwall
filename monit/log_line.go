@@ -22,6 +22,14 @@ func NewLogLine() *LogLine {
 	}
 }
 
+func formatTime(t time.Time) string {
+	cp := time.Now().Add(-24 * time.Hour)
+	if t.Before(cp) {
+		return t.Format("02.01.2006 15:04:05.999")
+	}
+	return t.Format("15:04:05.999")
+}
+
 func (l *LogLine) Print(data []byte) error {
 	var m map[string]interface{}
 	err := json.Unmarshal(data, &m)
@@ -42,7 +50,7 @@ func (l *LogLine) Print(data []byte) error {
 			case "time":
 				t, err := time.Parse("2006-01-02T15:04:05.999999-07:00", v.(string))
 				if err == nil {
-					l.print(k, t.Format("15:04:05.999"), false)
+					l.print(k, formatTime(t), false)
 				}
 			default:
 				l.print(k, v, false)

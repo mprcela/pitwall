@@ -15,7 +15,12 @@
 package cmd
 
 import (
+	"log"
+
+	_ "github.com/minus5/svckit/dcy/lazy"
+
 	"github.com/minus5/pitwall/monit"
+	"github.com/minus5/svckit/dcy"
 	"github.com/spf13/cobra"
 )
 
@@ -33,21 +38,32 @@ var tailCmd = &cobra.Command{
     monit tail backend_api -a listic -e request_logger.go:30`,
 	Run: func(cmd *cobra.Command, args []string) {
 		//fmt.Println("tail called")
-		monit.Tail("", "")
+		if len(args) > 1 {
+			cmd.Usage()
+			return
+		}
+		service := ""
+		if len(args) == 1 {
+			service = args[0]
+		}
+
+		if err := dcy.ConnectTo("192.168.10.203:8500"); err != nil {
+			log.Fatal(err)
+		}
+		addr, err := dcy.Service("nsq-notifier")
+		if err != nil {
+			log.Fatal(err)
+		}
+		monit.Tail(addr.String(), service)
 	},
 }
 
 func init() {
-	//monitCmd.AddCommand(tailCmd)
 	rootCmd.AddCommand(tailCmd)
+	//monitCmd.AddCommand(tailCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// tailCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// tailCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	tailCmd.Flags().StringVarP(&dc, "dc", "d", "", "datacenter to find service")
+	tailCmd.MarkFlagRequired("dc")
+	// tailCmd.Flags().StringVarP(&service, "service", "s", "", "service to tail logs")
+	// tailCmd.MarkFlagRequired("service")
 }

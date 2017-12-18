@@ -9,15 +9,15 @@ import (
 	"net/http"
 )
 
-func Tail(dc, service string) {
-	tail()
+func Tail(addr, service string) {
+	url := fmt.Sprintf("http://%s/services/%s", addr, service)
+	tail(url)
 }
 
 var dataLinePrefix = []byte("data:")
 var heartbeatLinepPrefix = []byte("event: heartbeat")
 
-func tail() error {
-	url := "http://10.50.1.106:10500/services/backend_api"
+func tail(url string) error {
 	rsp, err := http.Get(url)
 	if err != nil {
 		return err
