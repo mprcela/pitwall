@@ -15,6 +15,7 @@ type DcConfig struct {
 	Region   string
 	Dc       string
 	Nomads   []string
+	Consuls  []string
 	Services map[string]*ServiceConfig
 }
 

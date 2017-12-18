@@ -13,12 +13,16 @@ import (
 type LogLine struct {
 	sizes     map[string]int
 	knownKeys []string
+	json      bool
+	pretty    bool
 }
 
-func NewLogLine() *LogLine {
+func NewLogLine(json, pretty bool) *LogLine {
 	return &LogLine{
 		sizes:     make(map[string]int),
 		knownKeys: []string{"time", "dc", "node", "host", "app", "file", "level", "msg"},
+		json:      json,
+		pretty:    pretty,
 	}
 }
 
@@ -31,9 +35,19 @@ func formatTime(t time.Time) string {
 }
 
 func (l *LogLine) Print(data []byte) error {
+	if l.json {
+		fmt.Printf("%s", data)
+		return nil
+	}
 	var m map[string]interface{}
 	err := json.Unmarshal(data, &m)
 	if err != nil {
+		return err
+	}
+
+	if l.pretty {
+		buf, err := json.MarshalIndent(m, "", "  ")
+		fmt.Printf("%s\n", buf)
 		return err
 	}
 

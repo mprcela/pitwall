@@ -13,6 +13,7 @@ var (
 	dc       string
 	noGit    bool
 	service  string
+	consul   string
 )
 
 //var cfgFile string
@@ -47,6 +48,12 @@ func init() {
 
 	//rootCmd.PersistentFlags().StringP("dc", "d", "", "datacenter")
 	//viper.BindPFlag("dc", rootCmd.PersistentFlags().Lookup("dc"))
+
+	rootCmd.PersistentFlags().StringVar(&path, "path", "~/work/pit/infrastructure", "infastructure project path")
+	rootCmd.PersistentFlags().StringVar(&consul, "consul", "http://consul.s2.minus5.hr", "consul url")
+	rootCmd.PersistentFlags().StringVar(&registry, "registry", "registry.dev.minus5.hr", "docker images registry url")
+	rootCmd.PersistentFlags().BoolVar(&noGit, "no-git", false, "don't pull/push to infrastructure repository")
+	//rootCmd.PersistentFlags().StringVarP(&dc, "dc", "d", "", "datacenter to deploy to")
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -1,17 +1,3 @@
-// Copyright © 2017 NAME HERE <EMAIL ADDRESS>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package cmd
 
 import (
@@ -37,7 +23,6 @@ var tailCmd = &cobra.Command{
     monit tail backend_api -i request_logger -a duration,status,code,lib
     monit tail backend_api -a listic -e request_logger.go:30`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println("tail called")
 		if len(args) > 1 {
 			cmd.Usage()
 			return
@@ -47,23 +32,38 @@ var tailCmd = &cobra.Command{
 			service = args[0]
 		}
 
-		if err := dcy.ConnectTo("192.168.10.203:8500"); err != nil {
+		if err := dcy.ConnectTo(consul); err != nil {
 			log.Fatal(err)
 		}
-		addr, err := dcy.Service("nsq-notifier")
+		addr, err := dcy.ServiceInDc("nsq-notifier", dc)
 		if err != nil {
-			log.Fatal(err)
+			addr, err = dcy.ServiceInDc("nsq_notifier", dc)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
-		monit.Tail(addr.String(), service)
+		monit.Tail(monit.TailOptions{
+			Address: addr.String(),
+			Service: service,
+			Json:    json,
+			Pretty:  pretty,
+		})
+
 	},
 }
+
+var (
+	json   bool
+	pretty bool
+)
 
 func init() {
 	rootCmd.AddCommand(tailCmd)
 	//monitCmd.AddCommand(tailCmd)
 
 	tailCmd.Flags().StringVarP(&dc, "dc", "d", "", "datacenter to find service")
+	tailCmd.Flags().BoolVarP(&json, "json", "j", false, "print unparsed json log line")
+	tailCmd.Flags().BoolVarP(&pretty, "pretty", "p", false, "pretrty print json log line")
 	tailCmd.MarkFlagRequired("dc")
-	// tailCmd.Flags().StringVarP(&service, "service", "s", "", "service to tail logs")
-	// tailCmd.MarkFlagRequired("service")
+
 }

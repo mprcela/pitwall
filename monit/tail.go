@@ -6,23 +6,96 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"time"
+
+	units "github.com/docker/go-units"
+	"github.com/manifoldco/promptui"
 )
 
-func Tail(addr, service string) {
-	url := fmt.Sprintf("http://%s/services/%s", addr, service)
-	tail(url)
+type TailOptions struct {
+	Address string
+	Service string
+	Json    bool
+	Pretty  bool
 }
 
-var dataLinePrefix = []byte("data:")
+func (o TailOptions) servicesUrl() string {
+	return fmt.Sprintf("http://%s/services", o.Address)
+}
+
+func (o TailOptions) logsUrl() string {
+	return fmt.Sprintf("http://%s/services/%s", o.Address, o.Service)
+}
+
+func Tail(o TailOptions) {
+	if o.Service == "" {
+		services, err := getServices(o)
+		if err != nil {
+			return
+		}
+		o.Service, err = selectService(services)
+		if err != nil {
+			return
+		}
+	}
+	tail(o)
+}
+
+type service struct {
+	Service  string
+	ActiveAt time.Time `json:"active_at"`
+}
+
+func (s service) String() string {
+	h := units.HumanDuration(time.Now().UTC().Sub(s.ActiveAt))
+	h = h + " ago"
+	return fmt.Sprintf("%-30s %s", s.Service, h)
+}
+
+func selectService(services []service) (string, error) {
+	prompt := promptui.Select{
+		Label: "Select service:",
+		Items: services,
+		Size:  10,
+		Templates: &promptui.SelectTemplates{
+			Selected: string([]byte("\033[" + "1A")),
+		},
+	}
+	idx, _, err := prompt.Run()
+	if err != nil {
+		return "", err
+	}
+	return services[idx].Service, nil
+}
+
+func getServices(o TailOptions) ([]service, error) {
+	rsp, err := http.Get(o.servicesUrl())
+	if err != nil {
+		return nil, err
+	}
+	defer rsp.Body.Close()
+	buf, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var services []service
+	if err := json.Unmarshal(buf, &services); err != nil {
+		return nil, err
+	}
+	return services, nil
+}
+
+var dataLinePrefix = []byte("data: ")
 var heartbeatLinepPrefix = []byte("event: heartbeat")
 
-func tail(url string) error {
-	rsp, err := http.Get(url)
+func tail(o TailOptions) error {
+	rsp, err := http.Get(o.logsUrl())
 	if err != nil {
 		return err
 	}
-	logLine := NewLogLine()
+	logLine := NewLogLine(o.Json, o.Pretty)
 	readSse(rsp.Body, func(data []byte) error {
 		return logLine.Print(data)
 	})
