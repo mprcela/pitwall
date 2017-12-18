@@ -19,6 +19,8 @@ type TailOptions struct {
 	Service string
 	Json    bool
 	Pretty  bool
+	Exclude []string
+	Include []string
 }
 
 func (o TailOptions) servicesUrl() string {
@@ -95,7 +97,7 @@ func tail(o TailOptions) error {
 	if err != nil {
 		return err
 	}
-	logLine := NewLogLine(o.Json, o.Pretty)
+	logLine := NewLogLine(o.Json, o.Pretty, o.Exclude, o.Include)
 	readSse(rsp.Body, func(data []byte) error {
 		return logLine.Print(data)
 	})

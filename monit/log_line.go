@@ -15,14 +15,38 @@ type LogLine struct {
 	knownKeys []string
 	json      bool
 	pretty    bool
+	exclude   []string
+	include   []string
 }
 
-func NewLogLine(json, pretty bool) *LogLine {
+func (l LogLine) show(key string) bool {
+	if len(l.exclude) > 0 {
+		for _, k := range l.exclude {
+			if key == k {
+				return false
+			}
+		}
+		return true
+	}
+	if len(l.include) > 0 {
+		for _, k := range l.include {
+			if key == k {
+				return true
+			}
+		}
+		return false
+	}
+	return true
+}
+
+func NewLogLine(json, pretty bool, exclude, include []string) *LogLine {
 	return &LogLine{
 		sizes:     make(map[string]int),
 		knownKeys: []string{"time", "dc", "node", "host", "app", "file", "level", "msg"},
 		json:      json,
 		pretty:    pretty,
+		exclude:   exclude,
+		include:   include,
 	}
 }
 
@@ -52,6 +76,9 @@ func (l *LogLine) Print(data []byte) error {
 	}
 
 	for _, k := range l.knownKeys {
+		if !l.show(k) {
+			continue
+		}
 		if v, ok := m[k]; ok {
 			switch k {
 			case "level":
@@ -74,6 +101,9 @@ func (l *LogLine) Print(data []byte) error {
 
 	var otherKeys []string
 	for k, _ := range m {
+		if !l.show(k) {
+			continue
+		}
 		if !l.isKnownKey(k) {
 			otherKeys = append(otherKeys, k)
 		}
