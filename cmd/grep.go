@@ -1,49 +1,78 @@
-// Copyright © 2017 NAME HERE <EMAIL ADDRESS>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+
+	"github.com/minus5/pitwall/monit"
+	"github.com/spf13/cobra"
+)
 
 // grepCmd represents the grep command
 var grepCmd = &cobra.Command{
 	Use:   "grep",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Grep logs from the AWS CloudWatch",
+	Long: fmt.Sprintf(`Grep logs from the AWS CloudWatch.
+Filter patern refernece: https://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/FilterAndPatternSyntax.html
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+  Supported time patterns (for start and end time):%s
+
+  Examples:
+    monit grep haproxy -s 16:23 -e 16:24
+    monit grep haproxy -s "14.04. 16:23" -e "14.04. 16:24" --dry
+    monit grep haproxy -s "3 hours ago"
+    monit grep haproxy -d pg1 -s "3 hours ago"
+    monit grep backend_api -e "15.04. 13:02" -s "15.04. 12:58" -f '"49B69912-5537-4553-48EB-99500B9FC539"' -p
+    monit grep backend_api -s "1 day ago" -f "{$.retry>100}"`, monit.TimePatterns()),
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Printf("grep called dc:%s\n", cmd.Flag("dc").Value)
-		//fmt.Printf("author: var: %s flag: %s viper: %s\n", author, cmd.Flag("author").Value, viper.Get("author"))
+		if len(args) > 1 {
+			cmd.Usage()
+			return
+		}
+		service := ""
+		if len(args) == 1 {
+			service = args[0]
+		}
 
-		//fmt.Printf("port: %s\n", cmd.Flag("port").Value)
+		st, errSt := monit.ParseTime(startTime)
+		et, errEt := monit.ParseTime(endTime)
+		if errSt != nil || errEt != nil {
+			cmd.Usage()
+			return
+		}
+
+		monit.Grep(monit.GrepOptions{
+			Address:   getServiceAddress("nsq-to-cloudwatch", "nsq_to_cloudwatch"),
+			Service:   service,
+			Json:      json,
+			Pretty:    pretty,
+			Exclude:   splitComma(exclude),
+			Include:   splitComma(include),
+			Filter:    filter,
+			StartTime: st,
+			EndTime:   et,
+		})
 	},
 }
 
+var (
+	filter    string
+	startTime string
+	endTime   string
+)
+
 func init() {
-	monitCmd.AddCommand(grepCmd)
+	rootCmd.AddCommand(grepCmd)
 
-	// Here you will define your flags and configuration settings.
+	grepCmd.Flags().StringVarP(&dc, "dc", "d", "", "datacenter to use")
+	grepCmd.MarkFlagRequired("dc")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// grepCmd.PersistentFlags().String("foo", "", "A help for foo")
+	grepCmd.Flags().BoolVarP(&json, "json", "j", false, "print unparsed json log line")
+	grepCmd.Flags().BoolVarP(&pretty, "pretty", "p", false, "pretrty print json log line")
+	grepCmd.Flags().StringVarP(&exclude, "exclude", "x", "", "list of attributes to EXCLUDE separated by ,")
+	grepCmd.Flags().StringVarP(&include, "include", "i", "", "list of attributes to INCLUDE separated by ,")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// grepCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	grepCmd.Flags().StringVarP(&filter, "filter", "f", "", "AWS CloudWatch filter pattern (see ref.)")
+
+	grepCmd.Flags().StringVarP(&startTime, "start-time", "s", "", "find logs from start_time")
+	grepCmd.Flags().StringVarP(&endTime, "end-time", "e", "", "find logs till end_time")
 }

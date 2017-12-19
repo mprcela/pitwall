@@ -1,8 +1,10 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 	"strings"
+
+	"github.com/minus5/svckit/log"
 
 	_ "github.com/minus5/svckit/dcy/lazy"
 
@@ -33,18 +35,8 @@ var tailCmd = &cobra.Command{
 			service = args[0]
 		}
 
-		if err := dcy.ConnectTo(consul); err != nil {
-			log.Fatal(err)
-		}
-		addr, err := dcy.ServiceInDc("nsq-notifier", dc)
-		if err != nil {
-			addr, err = dcy.ServiceInDc("nsq_notifier", dc)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
 		monit.Tail(monit.TailOptions{
-			Address: addr.String(),
+			Address: getServiceAddress("nsq_notifier", "nsq-notifier"),
 			Service: service,
 			Json:    json,
 			Pretty:  pretty,
@@ -63,6 +55,20 @@ func splitComma(s string) []string {
 	return parts
 }
 
+func getServiceAddress(names ...string) string {
+	if err := dcy.ConnectTo(consul); err != nil {
+		log.Fatal(err)
+	}
+	for _, n := range names {
+		addr, err := dcy.ServiceInDc(n, dc)
+		if err == nil {
+			return addr.String()
+		}
+	}
+	log.Fatal(fmt.Errorf("service %v not found in consul %s ", names, consul))
+	return ""
+}
+
 var (
 	json    bool
 	pretty  bool
@@ -75,10 +81,11 @@ func init() {
 	//monitCmd.AddCommand(tailCmd)
 
 	tailCmd.Flags().StringVarP(&dc, "dc", "d", "", "datacenter to find service")
+	tailCmd.MarkFlagRequired("dc")
+
 	tailCmd.Flags().BoolVarP(&json, "json", "j", false, "print unparsed json log line")
 	tailCmd.Flags().BoolVarP(&pretty, "pretty", "p", false, "pretrty print json log line")
-	tailCmd.Flags().StringVarP(&exclude, "exclude", "e", "", "list of attributes to EXCLUDE separated by ,")
+	tailCmd.Flags().StringVarP(&exclude, "exclude", "x", "", "list of attributes to EXCLUDE separated by ,")
 	tailCmd.Flags().StringVarP(&include, "include", "i", "", "list of attributes to INCLUDE separated by ,")
-	tailCmd.MarkFlagRequired("dc")
 
 }
