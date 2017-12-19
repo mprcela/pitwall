@@ -108,7 +108,32 @@ func (d *Deployer) status() error {
 			log.S("after", du).Info("deployment successful")
 			break
 		}
-		return fmt.Errorf("deployment failed status: %s", dep.Status)
+
+		// find and show error
+		al, _, err := d.cli.Deployments().Allocations(depID, nil)
+		if err == nil {
+			for _, a := range al {
+				for _, s := range a.TaskStates {
+					for _, e := range s.Events {
+						if e.DriverError != "" ||
+							e.DownloadError != "" ||
+							e.ValidationError != "" ||
+							e.SetupError != "" ||
+							e.VaultError != "" {
+							fmt.Printf("%s%s%s%s%s",
+								warn(e.DriverError),
+								warn(e.DownloadError),
+								warn(e.ValidationError),
+								warn(e.SetupError),
+								warn(e.VaultError))
+						}
+					}
+				}
+			}
+		}
+		return fmt.Errorf("deployment failed status: %s %s",
+			dep.Status,
+			dep.StatusDescription)
 	}
 	return nil
 }
