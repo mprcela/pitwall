@@ -15,6 +15,7 @@ type Deployer struct {
 	dc              string
 	service         string
 	image           string
+	address         string
 	config          *DcConfig
 	job             *api.Job
 	cli             *api.Client
@@ -23,13 +24,14 @@ type Deployer struct {
 	jobDeploymentID string
 }
 
-func NewDeployer(root, dc, service, image string, config *DcConfig) *Deployer {
+func NewDeployer(root, dc, service, image string, config *DcConfig, address string) *Deployer {
 	return &Deployer{
 		root:    root,
 		dc:      dc,
 		service: service,
 		image:   image,
 		config:  config,
+		address: address,
 	}
 }
 
@@ -150,11 +152,8 @@ func (d *Deployer) loadServiceConfig() error {
 }
 
 func (d *Deployer) connect() error {
-	if len(d.config.Nomads) == 0 {
-		return fmt.Errorf("no nomad servers configured")
-	}
 	c := &api.Config{}
-	addr := d.config.Nomads[0]
+	addr := d.address
 	c = c.ClientConfig(d.config.Dc, addr, false)
 	cli, err := api.NewClient(c)
 	if err != nil {

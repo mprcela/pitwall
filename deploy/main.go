@@ -14,7 +14,7 @@ import (
 // prikazi koji je trenutni image
 // povezati s deploy-erom
 
-func Run(dc, service, path, registry string, noGit bool) {
+func Run(dc, service, path, registry string, noGit bool, address string) {
 	l := newTerminalLogger()
 	defer l.Close()
 
@@ -24,6 +24,7 @@ func Run(dc, service, path, registry string, noGit bool) {
 		registryUrl: registry,
 		dc:          dc,
 		noGit:       noGit,
+		address:     address,
 	}
 	if err := w.Go(); err != nil {
 		log.Error(err)
@@ -38,6 +39,7 @@ type Worker struct {
 	dc          string
 	service     string
 	image       string
+	address     string
 	noGit       bool
 
 	dcConfig      *DcConfig
@@ -69,7 +71,7 @@ func runSteps(steps []func() error) error {
 }
 
 func (w *Worker) deploy() error {
-	d := NewDeployer(w.root, w.dc, w.service, w.image, w.dcConfig)
+	d := NewDeployer(w.root, w.dc, w.service, w.image, w.dcConfig, w.address)
 	w.deployer = d
 	return d.Go()
 }

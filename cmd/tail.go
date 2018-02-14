@@ -1,15 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/minus5/svckit/log"
-
-	_ "github.com/minus5/svckit/dcy/lazy"
-
 	"github.com/minus5/pitwall/monit"
-	"github.com/minus5/svckit/dcy"
 	"github.com/spf13/cobra"
 )
 
@@ -53,20 +47,6 @@ func splitComma(s string) []string {
 		return nil
 	}
 	return parts
-}
-
-func getServiceAddress(names ...string) string {
-	if err := dcy.ConnectTo(consul); err != nil {
-		log.Fatal(err)
-	}
-	for _, n := range names {
-		addr, err := dcy.ServiceInDc(n, dc)
-		if err == nil {
-			return addr.String()
-		}
-	}
-	log.Fatal(fmt.Errorf("service %v not found in consul %s ", names, consul))
-	return ""
 }
 
 var (

@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	_ "github.com/minus5/svckit/dcy/lazy"
+
+	"github.com/minus5/svckit/dcy"
+	"github.com/minus5/svckit/log"
 	"github.com/spf13/cobra"
 )
 
@@ -80,4 +84,19 @@ func initConfig() {
 	// if err := viper.ReadInConfig(); err == nil {
 	// 	//fmt.Println("Using config file:", viper.ConfigFileUsed())
 	// }
+}
+
+// getServiceAddress returns adress of service
+func getServiceAddress(names ...string) string {
+	if err := dcy.ConnectTo(consul); err != nil {
+		log.Fatal(err)
+	}
+	for _, n := range names {
+		addr, err := dcy.ServiceInDc(n, dc)
+		if err == nil {
+			return addr.String()
+		}
+	}
+	log.Fatal(fmt.Errorf("service %v not found in consul %s ", names, consul))
+	return ""
 }
