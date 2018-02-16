@@ -93,6 +93,9 @@ func (w *Worker) push() error {
 	if w.noGit {
 		return nil
 	}
+	if err := w.repo.Pull(); err != nil {
+		return err
+	}
 	return w.repo.Commit(fmt.Sprintf("deployed %s to %s", w.service, w.dc), w.dcConfig.FileName())
 }
 
