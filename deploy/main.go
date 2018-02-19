@@ -26,6 +26,7 @@ func Run(dc, service, path, registry string, noGit bool, address string) {
 		noGit:       noGit,
 		address:     address,
 	}
+
 	if err := w.Go(); err != nil {
 		log.Error(err)
 	} else {
@@ -55,6 +56,7 @@ func (w *Worker) Go() error {
 		w.selectImage,
 		//w.confirmSelection,
 		w.deploy,
+		w.pullChanges,
 		w.updateDcConfig,
 		w.push,
 	}
@@ -89,12 +91,13 @@ func (w *Worker) pull() error {
 	return nil
 }
 
+func (w *Worker) pullChanges() error {
+	return w.repo.Pull()
+}
+
 func (w *Worker) push() error {
 	if w.noGit {
 		return nil
-	}
-	if err := w.repo.Pull(); err != nil {
-		return err
 	}
 	return w.repo.Commit(fmt.Sprintf("deployed %s to %s", w.service, w.dc), w.dcConfig.FileName())
 }
