@@ -14,7 +14,7 @@ import (
 // prikazi koji je trenutni image
 // povezati s deploy-erom
 
-func Run(dc, service, path, registry string, noGit bool, address string) {
+func Run(dc, service, path, registry, image string, noGit bool, address string) {
 	l := newTerminalLogger()
 	defer l.Close()
 
@@ -23,6 +23,7 @@ func Run(dc, service, path, registry string, noGit bool, address string) {
 		root:        env.ExpandPath(path),
 		registryUrl: registry,
 		dc:          dc,
+		image:       image,
 		noGit:       noGit,
 		address:     address,
 	}
@@ -125,6 +126,11 @@ func (w *Worker) selectService() error {
 }
 
 func (w *Worker) selectImage() error {
+	if w.image != "" {
+		log.S("image", w.image).Info("image preselected with flag")
+		return nil
+	}
+
 	i, err := NewImage(w.registryUrl, w.service, w.serviceConfig.Image)
 	if err != nil {
 		log.Error(err)

@@ -24,7 +24,7 @@ var deployCmd = &cobra.Command{
 		if len(args) == 1 {
 			service = args[0]
 		}
-		deploy.Run(dc, service, path, registry, noGit, getServiceAddressByTag("http", "nomad"))
+		deploy.Run(dc, service, path, registry, image, noGit, getServiceAddressByTag("http", "nomad"))
 	},
 }
 
