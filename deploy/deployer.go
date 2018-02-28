@@ -144,6 +144,10 @@ func (d *Deployer) loadServiceConfig() error {
 	fn := fmt.Sprintf("%s/nomad/service/%s.nomad", d.root, d.service)
 	job, err := jobspec.ParseFile(fn)
 	if err != nil {
+		fn = fmt.Sprintf("%s/nomad/system/%s.nomad", d.root, d.service)
+		job, err = jobspec.ParseFile(fn)
+	}
+	if err != nil {
 		return err
 	}
 	log.S("from", fn).Debug("loaded config")
