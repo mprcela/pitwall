@@ -87,12 +87,18 @@ func (d *Deployer) getDeploymentID() error {
 			d.jobDeploymentID = ev.DeploymentID
 			return nil
 		}
+		if ev.Status == "complete" && ev.Type != nomadStructs.JobTypeService {
+			return nil
+		}
 		time.Sleep(time.Second)
 	}
 }
 
 func (d *Deployer) status() error {
 	depID := d.jobDeploymentID
+	if depID == "" {
+		return nil
+	}
 	t := time.Now()
 	q := &api.QueryOptions{WaitIndex: 1, AllowStale: true, WaitTime: time.Duration(5 * time.Second)}
 	for {
