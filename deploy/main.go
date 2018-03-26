@@ -14,6 +14,7 @@ import (
 // prikazi koji je trenutni image
 // povezati s deploy-erom
 
+// Run deployment process
 func Run(dc, service, path, registry, image string, noGit bool, address string) {
 	l := newTerminalLogger()
 	defer l.Close()
@@ -21,7 +22,7 @@ func Run(dc, service, path, registry, image string, noGit bool, address string) 
 	w := Worker{
 		service:     service,
 		root:        env.ExpandPath(path),
-		registryUrl: registry,
+		registryURL: registry,
 		dc:          dc,
 		image:       image,
 		noGit:       noGit,
@@ -35,9 +36,10 @@ func Run(dc, service, path, registry, image string, noGit bool, address string) 
 	}
 }
 
+// Worker structure for deployment
 type Worker struct {
 	root        string
-	registryUrl string
+	registryURL string
 	dc          string
 	service     string
 	image       string
@@ -50,6 +52,7 @@ type Worker struct {
 	deployer      *Deployer
 }
 
+// Go starts deployment process
 func (w *Worker) Go() error {
 	steps := []func() error{
 		w.pull,
@@ -83,8 +86,8 @@ func (w *Worker) pull() error {
 	if w.noGit {
 		return nil
 	}
-	gitUrl := "git@github.com:minus5/infrastructure.git"
-	repo, err := NewRepo(w.root, gitUrl)
+	gitURL := "git@github.com:minus5/infrastructure.git"
+	repo, err := NewRepo(w.root, gitURL)
 	if err != nil {
 		return err
 	}
@@ -131,7 +134,7 @@ func (w *Worker) selectImage() error {
 		return nil
 	}
 
-	i, err := NewImage(w.registryUrl, w.service, w.serviceConfig.Image)
+	i, err := NewImage(w.registryURL, w.service, w.serviceConfig.Image)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -223,6 +226,7 @@ func (terminalLogger) WriteString(s string) (int, error) {
 	return len(s), nil
 }
 
-func (t *terminalLogger) Close() {
-	t.f.Close()
+// Close logging to local file
+func (l *terminalLogger) Close() {
+	l.f.Close()
 }

@@ -9,6 +9,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+// DcConfig containes parameters for specific datacenter
 type DcConfig struct {
 	root     string
 	dc       string
@@ -18,6 +19,7 @@ type DcConfig struct {
 	Services map[string]*ServiceConfig
 }
 
+// NewDcConfig creates new config for specific dc
 func NewDcConfig(root, dc string) (*DcConfig, error) {
 	c := &DcConfig{
 		root: root,
@@ -28,12 +30,13 @@ func NewDcConfig(root, dc string) (*DcConfig, error) {
 
 func (c *DcConfig) serviceNames() []string {
 	var names []string
-	for k, _ := range c.Services {
+	for k := range c.Services {
 		names = append(names, k)
 	}
 	return names
 }
 
+// Select service
 func (c *DcConfig) Select() (string, error) {
 	names := c.serviceNames()
 	prompt := promptui.Select{
@@ -48,6 +51,7 @@ func (c *DcConfig) Select() (string, error) {
 	return names[idx], err
 }
 
+// Find service
 func (c *DcConfig) Find(service string) *ServiceConfig {
 	for k, sc := range c.Services {
 		if k == service {
@@ -57,6 +61,7 @@ func (c *DcConfig) Find(service string) *ServiceConfig {
 	return nil
 }
 
+// FileName returns config.yml for dc
 func (c *DcConfig) FileName() string {
 	return fmt.Sprintf("%s/datacenters/%s/config.yml", c.root, c.dc)
 }
@@ -76,6 +81,7 @@ func (c *DcConfig) load() error {
 	return nil
 }
 
+// ServiceConfig represent structure for config.yml
 type ServiceConfig struct {
 	Image     string
 	Count     int
@@ -84,6 +90,7 @@ type ServiceConfig struct {
 	Node      string `yaml:"node,omitempty"`
 }
 
+// Save changes to config.yml
 func (c *DcConfig) Save() error {
 	fn := c.FileName()
 	buf, err := yaml.Marshal(c)

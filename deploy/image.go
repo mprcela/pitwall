@@ -14,22 +14,25 @@ import (
 	"github.com/minus5/svckit/log"
 )
 
+// Image represents docker image
 type Image struct {
-	registryUrl string
+	registryURL string
 	service     string
 	current     string
 	tags        []Tag
 }
 
+// NewImage sets image for deploy
 func NewImage(registry, service, current string) (*Image, error) {
 	i := &Image{
-		registryUrl: registry,
+		registryURL: registry,
 		service:     service,
 		current:     current,
 	}
 	return i, i.findTags()
 }
 
+// Select service image
 func (i Image) Select() (string, error) {
 	prompt := promptui.Select{
 		Items: i.tags,
@@ -42,11 +45,11 @@ func (i Image) Select() (string, error) {
 
 	idx, _, err := prompt.Run()
 	t := i.tags[idx]
-	return fmt.Sprintf("%s/%s:%s", i.registryUrl, i.service, t.tag), err
+	return fmt.Sprintf("%s/%s:%s", i.registryURL, i.service, t.tag), err
 }
 
 func (i *Image) findTags() error {
-	resp, err := http.Get(fmt.Sprintf("http://%s/v2/%s/tags/list", i.registryUrl, i.service))
+	resp, err := http.Get(fmt.Sprintf("http://%s/v2/%s/tags/list", i.registryURL, i.service))
 	if err != nil {
 		log.Error(err)
 		return err
@@ -75,6 +78,7 @@ func (i *Image) findTags() error {
 	return nil
 }
 
+// Tag is docker image tag
 type Tag struct {
 	tag     string
 	created time.Time
@@ -104,6 +108,7 @@ func (t Tag) String() string {
 		t.tag)
 }
 
+// NewTag is new docker image tag
 func NewTag(t string, current bool) Tag {
 	parts := strings.Split(t, ".")
 	c, _ := time.Parse("20060102150405", parts[0])
