@@ -111,7 +111,7 @@ func (t Tag) String() string {
 // NewTag is new docker image tag
 func NewTag(t string, current bool) Tag {
 	parts := strings.Split(t, ".")
-	c, _ := time.Parse("20060102150405", parts[0])
+	c, _ := time.ParseInLocation("20060102150405", parts[0], time.Local)
 	return Tag{
 		tag:     t,
 		created: c,
