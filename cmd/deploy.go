@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	_ "github.com/minus5/svckit/dcy/lazy"
-	"github.com/minus5/svckit/env"
 
 	"github.com/minus5/pitwall/deploy"
 	"github.com/minus5/svckit/dcy"
@@ -25,9 +24,7 @@ var deployCmd = &cobra.Command{
 		if len(args) == 1 {
 			service = args[0]
 		}
-
-		nomadName := findNomadForService(service)
-		deploy.Run(dc, service, path, registry, image, noGit, getServiceAddressByTag("http", nomadName))
+		deploy.Run(dc, service, path, registry, image, noGit, getServiceAddressByTag("http", "nomad"))
 	},
 }
 
@@ -36,22 +33,6 @@ func init() {
 
 	deployCmd.Flags().StringVarP(&dc, "dc", "d", "", "datacenter to deploy to")
 	deployCmd.MarkFlagRequired("dc")
-}
-
-func findNomadForService(service string) string {
-	c, err := deploy.NewDcConfig(env.ExpandPath(path), dc)
-	if err != nil {
-		log.Fatal(err)
-	}
-	svc := c.Find(service)
-	if svc == nil {
-		log.Fatal(fmt.Errorf("service %s not found", service))
-	}
-	name := "nomad"
-	if svc.DcRegion == "s2" {
-		name = "nomad-s2"
-	}
-	return name
 }
 
 func getServiceAddressByTag(tag, name string) string {
