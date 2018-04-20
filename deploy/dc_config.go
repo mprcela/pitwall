@@ -13,9 +13,6 @@ import (
 type DcConfig struct {
 	root     string
 	dc       string
-	Region   string
-	Dc       string
-	Consuls  []string
 	Services map[string]*ServiceConfig
 }
 
@@ -83,11 +80,12 @@ func (c *DcConfig) load() error {
 
 // ServiceConfig represent structure for config.yml
 type ServiceConfig struct {
-	Image     string
-	Count     int
-	DcRegion  string `yaml:"dc_region,omitempty"`
-	HostGroup string `yaml:"hostgroup,omitempty"`
-	Node      string `yaml:"node,omitempty"`
+	Image           string
+	Count           int
+	DcRegion        string `yaml:"dc_region,omitempty"`
+	HostGroup       string `yaml:"hostgroup,omitempty"`
+	Node            string `yaml:"node,omitempty"`
+	NomadServerName string `yaml:"nomad_server_name,omitempty"`
 }
 
 // Save changes to config.yml

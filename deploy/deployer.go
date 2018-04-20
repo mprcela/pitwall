@@ -13,7 +13,6 @@ import (
 //Deployer has all deployment related objects
 type Deployer struct {
 	root            string
-	dc              string
 	service         string
 	image           string
 	address         string
@@ -23,13 +22,14 @@ type Deployer struct {
 	jobModifyIndex  uint64
 	jobEvalID       string
 	jobDeploymentID string
+	region          string
+	dc              string
 }
 
 // NewDeployer is used to create new deployer
-func NewDeployer(root, dc, service, image string, config *DcConfig, address string) *Deployer {
+func NewDeployer(root, service, image string, config *DcConfig, address string) *Deployer {
 	return &Deployer{
 		root:    root,
-		dc:      dc,
 		service: service,
 		image:   image,
 		config:  config,
@@ -59,7 +59,7 @@ func (d *Deployer) Go() error {
 // checkServiceConfig - does config.yml exists in dc directory
 func (d *Deployer) checkServiceConfig() error {
 	if _, ok := d.config.Services[d.service]; !ok {
-		return fmt.Errorf("service %d not found in datacenter config", d.service)
+		return fmt.Errorf("service %s not found in datacenter config", d.service)
 	}
 	return nil
 }
@@ -189,21 +189,33 @@ func (d *Deployer) loadServiceConfig() error {
 func (d *Deployer) connect() error {
 	c := &api.Config{}
 	addr := d.address
-	c = c.ClientConfig(d.config.Dc, addr, false)
+	c = c.ClientConfig("", addr, false)
 	cli, err := api.NewClient(c)
 	if err != nil {
 		return err
 	}
 	log.S("nomad", addr).Info("connected")
 	d.cli = cli
+	// server default dc and region
+	dc, err := d.cli.Agent().Datacenter()
+	if err != nil {
+		return err
+	}
+	region, err := d.cli.Agent().Region()
+	if err != nil {
+		return err
+	}
+	d.dc = dc
+	d.region = region
 	return nil
 }
 
 // validate the job to check is it syntactically correct
 // combines Nomad job file and config.yml for specific datacenter
 func (d *Deployer) validate() error {
-	d.job.Region = &d.config.Region
-	d.job.AddDatacenter(d.config.Dc)
+
+	d.job.Region = &d.region
+	d.job.AddDatacenter(d.dc)
 
 	s := d.config.Services[d.service]
 	if s.DcRegion != "" {

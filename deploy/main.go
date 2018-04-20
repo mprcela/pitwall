@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/manifoldco/promptui"
+	"github.com/minus5/svckit/dcy"
 	"github.com/minus5/svckit/env"
 	"github.com/minus5/svckit/log"
 )
@@ -15,7 +16,7 @@ import (
 // povezati s deploy-erom
 
 // Run deployment process
-func Run(dc, service, path, registry, image string, noGit bool, address string) {
+func Run(dc, service, path, registry, image string, noGit bool, consul, consulDc string) {
 	l := newTerminalLogger()
 	defer l.Close()
 
@@ -26,7 +27,8 @@ func Run(dc, service, path, registry, image string, noGit bool, address string) 
 		dc:          dc,
 		image:       image,
 		noGit:       noGit,
-		address:     address,
+		consul:      consul,
+		consulDc:    consulDc,
 	}
 
 	if err := w.Go(); err != nil {
@@ -43,7 +45,8 @@ type Worker struct {
 	dc          string
 	service     string
 	image       string
-	address     string
+	consul      string
+	consulDc    string
 	noGit       bool
 
 	dcConfig      *DcConfig
@@ -77,7 +80,12 @@ func runSteps(steps []func() error) error {
 }
 
 func (w *Worker) deploy() error {
-	d := NewDeployer(w.root, w.dc, w.service, w.image, w.dcConfig, w.address)
+	nomadServerName := "nomad"
+	if n := w.serviceConfig.NomadServerName; n != "" {
+		nomadServerName = n
+	}
+	address := w.getServiceAddressByTag("http", nomadServerName)
+	d := NewDeployer(w.root, w.service, w.image, w.dcConfig, address)
 	w.deployer = d
 	return d.Go()
 }
@@ -229,4 +237,16 @@ func (terminalLogger) WriteString(s string) (int, error) {
 // Close logging to local file
 func (l *terminalLogger) Close() {
 	l.f.Close()
+}
+
+func (w *Worker) getServiceAddressByTag(tag, name string) string {
+	if err := dcy.ConnectTo(w.consul); err != nil {
+		log.Fatal(err)
+	}
+	addr, err := dcy.ServiceInDcByTag(tag, name, w.dc)
+	if err == nil {
+		return addr.String()
+	}
+	log.Fatal(fmt.Errorf("service %s with tag %s not found in consul %s", name, tag, w.consul))
+	return ""
 }
