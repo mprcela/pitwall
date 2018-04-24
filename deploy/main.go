@@ -80,11 +80,11 @@ func runSteps(steps []func() error) error {
 }
 
 func (w *Worker) deploy() error {
-	nomadServerName := "nomad"
-	if n := w.serviceConfig.NomadServerName; n != "" {
-		nomadServerName = n
+	location := "nomad"
+	if n := w.serviceConfig.Location; n != "" {
+		location = n
 	}
-	address := w.getServiceAddressByTag("http", nomadServerName)
+	address := w.getServiceAddressByTag("http", location)
 	d := NewDeployer(w.root, w.service, w.image, w.dcConfig, address)
 	w.deployer = d
 	return d.Go()
