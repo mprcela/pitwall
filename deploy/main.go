@@ -80,11 +80,11 @@ func runSteps(steps []func() error) error {
 }
 
 func (w *Worker) deploy() error {
-	location := "nomad"
+	nomadName := "nomad"
 	if n := w.serviceConfig.Location; n != "" {
-		location = n
+		nomadName = fmt.Sprintf("%s-%s", nomadName, w.serviceConfig.Location)
 	}
-	address := w.getServiceAddressByTag("http", location)
+	address := w.getServiceAddressByTag("http", nomadName)
 	d := NewDeployer(w.root, w.service, w.image, w.dcConfig, address)
 	w.deployer = d
 	return d.Go()
