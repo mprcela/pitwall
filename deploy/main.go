@@ -104,6 +104,9 @@ func (w *Worker) pull() error {
 }
 
 func (w *Worker) pullChanges() error {
+	if w.noGit {
+		return nil
+	}
 	return w.repo.Pull()
 }
 
