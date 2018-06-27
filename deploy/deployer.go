@@ -122,13 +122,49 @@ func (d *Deployer) status() error {
 	if depID == "" {
 		return nil
 	}
+
+	var canaryChan chan interface{}
+	deploymentChan := make(chan interface{})
+
+	if d.job.Update != nil && d.job.Update.Canary != nil && *d.job.Update.Canary != 0 {
+		canaryChan = make(chan interface{})
+		go d.canaryPromote(depID, canaryChan, deploymentChan)
+	}
+
 	t := time.Now()
 	q := &api.QueryOptions{WaitIndex: 1, AllowStale: true, WaitTime: time.Duration(5 * time.Second)}
+
+	// signal canaryPromote goroutine to exit if it's still runing on return
+	defer func() {
+		if canaryChan != nil {
+			close(canaryChan)
+		}
+	}()
+
 	for {
 		dep, meta, err := d.cli.Deployments().Info(depID, q)
+
+		select {
+		case <-deploymentChan:
+			// if promotion didn't succeed, and deployment is still running, fail it
+			if dep.Status == nomadStructs.DeploymentStatusRunning {
+				log.Info("failing deployment")
+				_, _, err := d.cli.Deployments().Fail(depID, nil)
+				if err != nil {
+					return fmt.Errorf("error while manually failing deployment: %v", err)
+				}
+			}
+
+			return fmt.Errorf("deployment failed")
+		default:
+			break
+
+		}
+
 		if err != nil {
 			return err
 		}
+
 		q.WaitIndex = meta.LastIndex
 		du := fmt.Sprintf("%.2fs", time.Since(t).Seconds())
 		if dep.Status == nomadStructs.DeploymentStatusRunning {
@@ -140,33 +176,90 @@ func (d *Deployer) status() error {
 			break
 		}
 
-		// find and show error
-		al, _, err := d.cli.Deployments().Allocations(depID, nil)
-		if err == nil {
-			for _, a := range al {
-				for _, s := range a.TaskStates {
-					for _, e := range s.Events {
-						if e.DriverError != "" ||
-							e.DownloadError != "" ||
-							e.ValidationError != "" ||
-							e.SetupError != "" ||
-							e.VaultError != "" {
-							fmt.Printf("%s%s%s%s%s",
-								warn(e.DriverError),
-								warn(e.DownloadError),
-								warn(e.ValidationError),
-								warn(e.SetupError),
-								warn(e.VaultError))
-						}
-					}
-				}
-			}
-		}
+		d.checkFailedDeployment(depID)
+
 		return fmt.Errorf("deployment failed status: %s %s",
 			dep.Status,
 			dep.StatusDescription)
 	}
 	return nil
+}
+
+// find and show deployment error
+func (d *Deployer) checkFailedDeployment(depID string) {
+	al, _, err := d.cli.Deployments().Allocations(depID, nil)
+	if err == nil {
+		for _, a := range al {
+			for _, s := range a.TaskStates {
+				for _, e := range s.Events {
+					if e.DriverError != "" ||
+						e.DownloadError != "" ||
+						e.ValidationError != "" ||
+						e.SetupError != "" ||
+						e.VaultError != "" {
+						fmt.Printf("%s%s%s%s%s",
+							warn(e.DriverError),
+							warn(e.DownloadError),
+							warn(e.ValidationError),
+							warn(e.SetupError),
+							warn(e.VaultError))
+					}
+				}
+			}
+		}
+	}
+}
+
+// promote canary allocations when all are healthy
+func (d *Deployer) canaryPromote(depID string, shutdownChan, deploymentChan chan interface{}) {
+	log.S("deploymentID", depID).Info("promoting deployment")
+
+	autoPromote := time.Tick(5 * time.Second)
+
+	for {
+
+		select {
+		case <-autoPromote:
+			if healthy := d.checkCanaryHealth(depID); !healthy {
+				continue
+			}
+
+			_, _, err := d.cli.Deployments().PromoteAll(depID, nil)
+			if err != nil {
+				log.Errorf("error while promoting: %v", err)
+				close(deploymentChan)
+			}
+			return
+
+		case <-shutdownChan:
+			return
+		}
+	}
+
+}
+
+// check if all canary allocations are healthy
+func (d *Deployer) checkCanaryHealth(depID string) bool {
+	var unhealthy int
+
+	dep, _, err := d.cli.Deployments().Info(depID, &api.QueryOptions{AllowStale: true})
+	if err != nil {
+		log.Errorf("unable to query deployment %s for health: %v", depID, err)
+		return false
+	}
+
+	for _, taskInfo := range dep.TaskGroups {
+		if taskInfo.DesiredCanaries == 0 {
+			continue
+		}
+
+		if taskInfo.DesiredCanaries != taskInfo.HealthyAllocs {
+			unhealthy++
+		}
+	}
+
+	return unhealthy == 0
+
 }
 
 // loadServiceConfig from dc config.yml
@@ -180,6 +273,7 @@ func (d *Deployer) loadServiceConfig() error {
 	if err != nil {
 		return err
 	}
+
 	log.S("from", fn).Debug("loaded config")
 	d.job = job
 	return d.checkServiceConfig()
