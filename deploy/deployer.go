@@ -144,6 +144,10 @@ func (d *Deployer) status() error {
 	for {
 		dep, meta, err := d.cli.Deployments().Info(depID, q)
 
+		if err != nil {
+			return err
+		}
+
 		select {
 		case <-deploymentChan:
 			// if promotion didn't succeed, and deployment is still running, fail it
@@ -159,10 +163,6 @@ func (d *Deployer) status() error {
 		default:
 			break
 
-		}
-
-		if err != nil {
-			return err
 		}
 
 		q.WaitIndex = meta.LastIndex
