@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/manifoldco/promptui"
 	"github.com/minus5/svckit/dcy"
@@ -222,10 +223,16 @@ func (l terminalLogger) Write(p []byte) (int, error) {
 		fmt.Printf("%s", faint(m["msg"]))
 	}
 
-	for k, v := range m {
+	var keys []string
+	for k, _ := range m {
 		if k == "file" || k == "host" || k == "time" || k == "app" || k == "msg" || k == "level" {
 			continue
 		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := m[k]
 		fmt.Printf(faint(fmt.Sprintf(" %s: %v", k, v)))
 	}
 	fmt.Printf("\n")

@@ -168,7 +168,14 @@ func (d *Deployer) status() error {
 		q.WaitIndex = meta.LastIndex
 		du := fmt.Sprintf("%.2fs", time.Since(t).Seconds())
 		if dep.Status == nomadStructs.DeploymentStatusRunning {
-			log.S("running", du).Debug("checking status")
+			for _, v := range dep.TaskGroups {
+				log.S("running", du).
+					//S("group", k).
+					I("desired", v.DesiredTotal).
+					I("placed", v.PlacedAllocs).
+					I("healthy", v.HealthyAllocs).
+					Debug("checking status")
+			}
 			continue
 		}
 		if dep.Status == nomadStructs.DeploymentStatusSuccessful {
