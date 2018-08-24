@@ -82,7 +82,6 @@ func (c *DcConfig) load() error {
 type ServiceConfig struct {
 	Image     string
 	Count     int
-	DcRegion  string `yaml:"dc_region,omitempty"`
 	HostGroup string `yaml:"hostgroup,omitempty"`
 	Node      string `yaml:"node,omitempty"`
 	Location  string `yaml:"location,omitempty"`

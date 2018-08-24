@@ -319,9 +319,6 @@ func (d *Deployer) validate() error {
 	d.job.AddDatacenter(d.dc)
 
 	s := d.config.Services[d.service]
-	if s.DcRegion != "" {
-		d.job.Constrain(api.NewConstraint("${meta.dc_region}", "=", s.DcRegion))
-	}
 	if s.HostGroup != "" {
 		d.job.Constrain(api.NewConstraint("${meta.hostgroup}", "=", s.HostGroup))
 	}
