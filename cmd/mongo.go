@@ -28,9 +28,6 @@ var mongoCmd = &cobra.Command{
 	Use:   "mongo",
 	Short: "Mongo database root command",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("mongo called")
-	},
 }
 
 var shellCmd = &cobra.Command{
