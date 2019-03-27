@@ -6,8 +6,15 @@ import (
 
 	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/jobspec"
-	nomadStructs "github.com/hashicorp/nomad/nomad/structs"
 	"github.com/mnu5/svckit/log"
+)
+
+// copying from https://github.com/hashicorp/nomad/blob/74c270d89a193ac6695e1116d4e25c681322cc98/nomad/structs/structs.go
+// i had a problem with including github.com/hashicorp/nomad/nomad/structs
+const (
+	JobTypeService             = "service"
+	DeploymentStatusRunning    = "running"
+	DeploymentStatusSuccessful = "successful"
 )
 
 //Deployer has all deployment related objects
@@ -109,7 +116,7 @@ func (d *Deployer) getDeploymentID() error {
 			d.jobDeploymentID = ev.DeploymentID
 			return nil
 		}
-		if ev.Status == "complete" && ev.Type != nomadStructs.JobTypeService {
+		if ev.Status == "complete" && ev.Type != JobTypeService {
 			return nil
 		}
 		time.Sleep(time.Second)
@@ -151,7 +158,7 @@ func (d *Deployer) status() error {
 		select {
 		case <-deploymentChan:
 			// if promotion didn't succeed, and deployment is still running, fail it
-			if dep.Status == nomadStructs.DeploymentStatusRunning {
+			if dep.Status == DeploymentStatusRunning {
 				log.Info("failing deployment")
 				_, _, err := d.cli.Deployments().Fail(depID, nil)
 				if err != nil {
@@ -167,7 +174,7 @@ func (d *Deployer) status() error {
 
 		q.WaitIndex = meta.LastIndex
 		du := fmt.Sprintf("%.2fs", time.Since(t).Seconds())
-		if dep.Status == nomadStructs.DeploymentStatusRunning {
+		if dep.Status == DeploymentStatusRunning {
 			for _, v := range dep.TaskGroups {
 				log.S("running", du).
 					//S("group", k).
@@ -178,7 +185,7 @@ func (d *Deployer) status() error {
 			}
 			continue
 		}
-		if dep.Status == nomadStructs.DeploymentStatusSuccessful {
+		if dep.Status == DeploymentStatusSuccessful {
 			log.S("after", du).Info("deployment successful")
 			break
 		}
