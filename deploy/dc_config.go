@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/manifoldco/promptui"
-	"github.com/minus5/svckit/log"
+	"github.com/mnu5/svckit/log"
 	yaml "gopkg.in/yaml.v2"
 )
 

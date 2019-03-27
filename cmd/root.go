@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/minus5/svckit/dcy/lazy"
+	_ "github.com/mnu5/svckit/dcy/lazy"
 
-	"github.com/minus5/svckit/dcy"
-	"github.com/minus5/svckit/log"
+	"github.com/mnu5/svckit/dcy"
+	"github.com/mnu5/svckit/log"
 	"github.com/spf13/cobra"
 )
 

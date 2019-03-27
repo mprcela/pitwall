@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/minus5/pitwall/monit"
+	"github.com/mnu5/pitwall/monit"
 	"github.com/spf13/cobra"
 )
 

@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	_ "github.com/minus5/svckit/dcy/lazy"
+	"github.com/mnu5/pitwall/deploy"
+	_ "github.com/mnu5/svckit/dcy/lazy"
 
-	"github.com/minus5/pitwall/deploy"
 	"github.com/spf13/cobra"
 )
 

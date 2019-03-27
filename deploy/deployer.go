@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/jobspec"
 	nomadStructs "github.com/hashicorp/nomad/nomad/structs"
-	"github.com/minus5/svckit/log"
+	"github.com/mnu5/svckit/log"
 )
 
 //Deployer has all deployment related objects

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/manifoldco/promptui"
-	"github.com/minus5/svckit/log"
+	"github.com/mnu5/svckit/log"
 )
 
 type GrepOptions struct {

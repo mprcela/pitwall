@@ -11,7 +11,7 @@ import (
 
 	"github.com/docker/go-units"
 	"github.com/manifoldco/promptui"
-	"github.com/minus5/svckit/log"
+	"github.com/mnu5/svckit/log"
 )
 
 // Image represents docker image

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/minus5/svckit/log"
+	"github.com/mnu5/svckit/log"
 
 	"code.gitea.io/git"
 )
