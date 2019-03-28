@@ -20,14 +20,15 @@ release:
   # Default is extracted from the origin remote URL.
   github:
     owner: minus5
-    name: tmp
+    name: homebrew-tap
 
 brew:
   # Repository to push the tap to.
   github:
     owner: minus5
-    name: tmp
+    name: homebrew-tap
 
+  description: "minus5 infrastructre entry point"
   download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
   custom_require: ../download_strategy
 
