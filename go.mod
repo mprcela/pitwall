@@ -1,4 +1,4 @@
-module github.com/mnu5/pitwall
+module github.com/minus5/pitwall
 
 go 1.12
 
@@ -12,6 +12,7 @@ require (
 	github.com/docker/go-units v0.3.3
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75 // indirect
+	github.com/gorilla/mux v1.7.1 // indirect
 	github.com/hashicorp/go-plugin v1.0.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.5.3 // indirect
 	github.com/hashicorp/go-version v1.1.0 // indirect
@@ -23,10 +24,11 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/manifoldco/promptui v0.3.2
 	github.com/mcuadros/go-version v0.0.0-20190308113854-92cdf37c5b75 // indirect
+	github.com/miekg/dns v1.1.8 // indirect
+	github.com/minus5/svckit v0.0.0-20190409202527-02956f51c506
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/gox v1.0.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
-	github.com/mnu5/svckit v0.0.0-20190328092648-1445548954d0
 	github.com/nicksnyder/go-i18n v1.10.0 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
@@ -34,10 +36,12 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
-	github.com/stretchr/objx v0.1.1 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/ugorji/go v0.0.0-20170620060102-0053ebfd9d0e // indirect
-	golang.org/x/net v0.0.0-20190327214358-63eda1eb0650 // indirect
+	golang.org/x/crypto v0.0.0-20190404164418-38d8ce5564a5 // indirect
+	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3 // indirect
+	golang.org/x/sys v0.0.0-20190405154228-4b34438f7a67 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20180810215634-df19058c872c // indirect
 	gopkg.in/src-d/go-git.v4 v4.10.0 // indirect

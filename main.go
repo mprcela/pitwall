@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mnu5/pitwall/cmd"
+	"github.com/minus5/pitwall/cmd"
 )
 
 func main() {

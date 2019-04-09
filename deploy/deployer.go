@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/jobspec"
-	"github.com/mnu5/svckit/log"
+	"github.com/minus5/svckit/log"
 )
 
 // copying from https://github.com/hashicorp/nomad/blob/74c270d89a193ac6695e1116d4e25c681322cc98/nomad/structs/structs.go

@@ -7,9 +7,9 @@ import (
 	"sort"
 
 	"github.com/manifoldco/promptui"
-	"github.com/mnu5/svckit/dcy"
-	"github.com/mnu5/svckit/env"
-	"github.com/mnu5/svckit/log"
+	"github.com/minus5/svckit/dcy"
+	"github.com/minus5/svckit/env"
+	"github.com/minus5/svckit/log"
 )
 
 // TODO
