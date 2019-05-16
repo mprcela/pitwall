@@ -17,7 +17,7 @@ import (
 // povezati s deploy-erom
 
 // Run deployment process
-func Run(dc, service, path, registry, image string, noGit bool, consul, consulDc string) {
+func Run(deployment, service, path, registry, image string, noGit bool, consul string) {
 	l := newTerminalLogger()
 	defer l.Close()
 
@@ -25,11 +25,10 @@ func Run(dc, service, path, registry, image string, noGit bool, consul, consulDc
 		service:     service,
 		root:        env.ExpandPath(path),
 		registryURL: registry,
-		dc:          dc,
+		deployment:  deployment,
 		image:       image,
 		noGit:       noGit,
 		consul:      consul,
-		consulDc:    consulDc,
 	}
 
 	if err := w.Go(); err != nil {
@@ -43,14 +42,14 @@ func Run(dc, service, path, registry, image string, noGit bool, consul, consulDc
 type Worker struct {
 	root        string
 	registryURL string
-	dc          string
+	deployment  string
 	service     string
 	image       string
 	consul      string
 	consulDc    string
 	noGit       bool
 
-	dcConfig      *DcConfig
+	depConfig     *DeploymentConfig
 	serviceConfig *ServiceConfig
 	repo          Repo
 	deployer      *Deployer
@@ -65,7 +64,7 @@ func (w *Worker) Go() error {
 		//w.confirmSelection,
 		w.deploy,
 		w.pullChanges,
-		w.updateDcConfig,
+		w.updateDepConfig,
 		w.push,
 	}
 	return runSteps(steps)
@@ -86,7 +85,7 @@ func (w *Worker) deploy() error {
 		nomadName = fmt.Sprintf("%s-%s", nomadName, w.serviceConfig.Location)
 	}
 	address := w.getServiceAddressByTag("http", nomadName)
-	d := NewDeployer(w.root, w.service, w.image, w.dcConfig, address)
+	d := NewDeployer(w.root, w.service, w.image, w.depConfig, address)
 	w.deployer = d
 	return d.Go()
 }
@@ -115,15 +114,15 @@ func (w *Worker) push() error {
 	if w.noGit {
 		return nil
 	}
-	return w.repo.Commit(fmt.Sprintf("deployed %s to %s", w.service, w.dc), w.dcConfig.FileName())
+	return w.repo.Commit(fmt.Sprintf("deployed %s to %s", w.service, w.deployment), w.depConfig.FileName())
 }
 
 func (w *Worker) selectService() error {
-	c, err := NewDcConfig(w.root, w.dc)
+	c, err := NewDeploymentConfig(w.root, w.deployment)
 	if err != nil {
 		return err
 	}
-	w.dcConfig = c
+	w.depConfig = c
 	if w.service == "" {
 		s, err := c.Select()
 		if err != nil {
@@ -179,8 +178,8 @@ func (w *Worker) confirmSelection() error {
 	return nil
 }
 
-func (w *Worker) updateDcConfig() error {
-	return w.dcConfig.Save()
+func (w *Worker) updateDepConfig() error {
+	return w.depConfig.Save()
 }
 
 type terminalLogger struct {
@@ -253,7 +252,11 @@ func (w *Worker) getServiceAddressByTag(tag, name string) string {
 	if err := dcy.ConnectTo(w.consul); err != nil {
 		log.Fatal(err)
 	}
-	addr, err := dcy.ServiceInDcByTag(tag, name, w.dc)
+	dc := w.depConfig.FindDatacenter(name)
+	if dc == "" {
+		log.Fatal(fmt.Errorf("datacenter for service %s not set", name))
+	}
+	addr, err := dcy.ServiceInDcByTag(tag, name, dc)
 	if err == nil {
 		return addr.String()
 	}

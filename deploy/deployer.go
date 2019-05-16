@@ -16,7 +16,7 @@ type Deployer struct {
 	service         string
 	image           string
 	address         string
-	config          *DcConfig
+	config          *DeploymentConfig
 	job             *api.Job
 	cli             *api.Client
 	jobModifyIndex  uint64
@@ -27,7 +27,7 @@ type Deployer struct {
 }
 
 // NewDeployer is used to create new deployer
-func NewDeployer(root, service, image string, config *DcConfig, address string) *Deployer {
+func NewDeployer(root, service, image string, config *DeploymentConfig, address string) *Deployer {
 	return &Deployer{
 		root:    root,
 		service: service,
@@ -58,7 +58,7 @@ func (d *Deployer) Go() error {
 
 // checkServiceConfig - does config.yml exists in dc directory
 func (d *Deployer) checkServiceConfig() error {
-	if _, ok := d.config.Services[d.service]; !ok {
+	if s := d.config.Find(d.service); s != nil {
 		return fmt.Errorf("service %s not found in datacenter config", d.service)
 	}
 	return nil
@@ -318,7 +318,7 @@ func (d *Deployer) validate() error {
 	d.job.Region = &d.region
 	d.job.AddDatacenter(d.dc)
 
-	s := d.config.Services[d.service]
+	s := d.config.Find(d.service)
 	if s.HostGroup != "" {
 		d.job.Constrain(api.NewConstraint("${meta.hostgroup}", "=", s.HostGroup))
 	}
@@ -334,6 +334,12 @@ func (d *Deployer) validate() error {
 			for _, ta := range tg.Tasks {
 				if ta.Name == d.service {
 					ta.Config["image"] = d.image
+					if s.CPU != 0 {
+						ta.Resources.CPU = &s.CPU
+					}
+					if s.Memory != 0 {
+						ta.Resources.MemoryMB = &s.Memory
+					}
 					s.Image = d.image
 				}
 			}
