@@ -20,7 +20,6 @@ import (
 func Run(deployment, service, path, registry, image string, noGit bool, consul string) {
 	l := newTerminalLogger()
 	defer l.Close()
-
 	w := Worker{
 		service:     service,
 		root:        env.ExpandPath(path),
@@ -80,7 +79,11 @@ func runSteps(steps []func() error) error {
 }
 
 func (w *Worker) deploy() error {
-	address := w.getServiceAddressByTag("http", "nomad")
+	dc := w.depConfig.FindDatacenter(w.service)
+	if dc == "" {
+		log.Fatal(fmt.Errorf("datacenter for service %s not set", w.service))
+	}
+	address := w.getServiceAddressByTag("http", "nomad", dc)
 	d := NewDeployer(w.root, w.service, w.image, w.depConfig, address)
 	w.deployer = d
 	return d.Go()
@@ -244,13 +247,9 @@ func (l *terminalLogger) Close() {
 	l.f.Close()
 }
 
-func (w *Worker) getServiceAddressByTag(tag, name string) string {
+func (w *Worker) getServiceAddressByTag(tag, name, dc string) string {
 	if err := dcy.ConnectTo(w.consul); err != nil {
 		log.Fatal(err)
-	}
-	dc := w.depConfig.FindDatacenter(name)
-	if dc == "" {
-		log.Fatal(fmt.Errorf("datacenter for service %s not set", name))
 	}
 	addr, err := dcy.ServiceInDcByTag(tag, name, dc)
 	if err == nil {
