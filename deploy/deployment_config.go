@@ -13,13 +13,13 @@ import (
 type DeploymentConfig struct {
 	root         string
 	deployment   string
-	Datacenters  map[string]*DcConfig
 	FederatedDcs string `yaml:"federated_dcs"`
+	Datacenters  map[string]*DcConfig
 }
 
 // DcConfig contains parameters for specific datacenter
 type DcConfig struct {
-	Services map[string]*ServiceConfig
+	Services map[string]*ServiceConfig `yaml:"services,omitempty"`
 }
 
 // NewDeploymentConfig creates new config for specific deployment
@@ -106,7 +106,7 @@ type ServiceConfig struct {
 	Count  int
 	Node   string `yaml:"node,omitempty"`
 	CPU    int    `yaml:"cpu,omitempty"`
-	Memory int    `jamyl:"mem,omitempty"`
+	Memory int    `yaml:"mem,omitempty"`
 }
 
 // Save changes to config.yml
