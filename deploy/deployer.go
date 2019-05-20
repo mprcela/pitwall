@@ -345,6 +345,11 @@ func (d *Deployer) validate() error {
 					if d.config.FederatedDcs != "" {
 						ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
 					}
+					for k, v := range s.Environment {
+						if v != "" {
+							ta.Env[k] = v
+						}
+					}
 					s.Image = d.image
 				}
 			}

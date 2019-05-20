@@ -102,11 +102,12 @@ func (c *DeploymentConfig) load() error {
 
 // ServiceConfig represent structure for config.yml
 type ServiceConfig struct {
-	Image  string
-	Count  int
-	Node   string `yaml:"node,omitempty"`
-	CPU    int    `yaml:"cpu,omitempty"`
-	Memory int    `yaml:"mem,omitempty"`
+	Image       string
+	Count       int               `yaml:"count,omitempty"`
+	Node        string            `yaml:"node,omitempty"`
+	CPU         int               `yaml:"cpu,omitempty"`
+	Memory      int               `yaml:"mem,omitempty"`
+	Environment map[string]string `yaml:"env,omitempty"`
 }
 
 // Save changes to config.yml
