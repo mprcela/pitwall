@@ -10,6 +10,11 @@ import (
 	"github.com/minus5/svckit/log"
 )
 
+const (
+	// FederatedDcsEnv is name of the environment variable containing datacenter names
+	FederatedDcsEnv = "SVCKIT_FEDERATED_DCS"
+)
+
 //Deployer has all deployment related objects
 type Deployer struct {
 	root            string
@@ -336,6 +341,9 @@ func (d *Deployer) validate() error {
 					}
 					if s.Memory != 0 {
 						ta.Resources.MemoryMB = &s.Memory
+					}
+					if d.config.FederatedDcs != "" {
+						ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
 					}
 					s.Image = d.image
 				}

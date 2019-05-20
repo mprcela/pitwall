@@ -11,9 +11,10 @@ import (
 
 // DeploymentConfig containes parameters for specific deployment
 type DeploymentConfig struct {
-	root        string
-	deployment  string
-	Datacenters map[string]*DcConfig
+	root         string
+	deployment   string
+	Datacenters  map[string]*DcConfig
+	FederatedDcs string `yaml:"federated_dcs"`
 }
 
 // DcConfig contains parameters for specific datacenter
