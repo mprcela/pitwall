@@ -83,7 +83,13 @@ func (w *Worker) deploy() error {
 	if dc == "" {
 		log.Fatal(fmt.Errorf("datacenter for service %s not set", w.service))
 	}
-	address := w.getServiceAddressByTag("http", "nomad", dc)
+	// temporary fix until switch is made
+	nomadName := "nomad"
+	if dc == "js" {
+		dc = "s2"
+		nomadName = "nomad-js"
+	}
+	address := w.getServiceAddressByTag("http", nomadName, dc)
 	d := NewDeployer(w.root, w.service, w.image, w.depConfig, address)
 	w.deployer = d
 	return d.Go()
