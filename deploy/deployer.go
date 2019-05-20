@@ -58,7 +58,7 @@ func (d *Deployer) Go() error {
 
 // checkServiceConfig - does config.yml exists in dc directory
 func (d *Deployer) checkServiceConfig() error {
-	if s := d.config.Find(d.service); s != nil {
+	if s := d.config.Find(d.service); s == nil {
 		return fmt.Errorf("service %s not found in datacenter config", d.service)
 	}
 	return nil
