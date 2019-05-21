@@ -68,16 +68,30 @@ func (c *DeploymentConfig) Find(service string) *ServiceConfig {
 	return nil
 }
 
-// FindDatacenter finds datacenter for service if it exists
-func (c *DeploymentConfig) FindDatacenter(service string) string {
+// FindForDc returns config for specific service and datacenter
+func (c *DeploymentConfig) FindForDc(service, dc string) *ServiceConfig {
 	for d, s := range c.Datacenters {
-		for k := range s.Services {
-			if k == service {
-				return d
+		for k, sc := range s.Services {
+			if d == dc && k == service {
+				return sc
 			}
 		}
 	}
-	return ""
+	return nil
+}
+
+// FindDatacenters finds datacenters for service if it exists
+func (c *DeploymentConfig) FindDatacenters(service string) []string {
+	dcs := []string{}
+	for d, s := range c.Datacenters {
+		for k := range s.Services {
+			if k == service {
+				dcs = append(dcs, d)
+				break
+			}
+		}
+	}
+	return dcs
 }
 
 // FileName returns config.yml for dc

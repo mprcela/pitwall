@@ -79,20 +79,27 @@ func runSteps(steps []func() error) error {
 }
 
 func (w *Worker) deploy() error {
-	dc := w.depConfig.FindDatacenter(w.service)
-	if dc == "" {
-		log.Fatal(fmt.Errorf("datacenter for service %s not set", w.service))
+	dcs := w.depConfig.FindDatacenters(w.service)
+	if len(dcs) == 0 {
+		log.Fatal(fmt.Errorf("datacenters for service %s not set", w.service))
 	}
-	// temporary fix until switch is made
-	nomadName := "nomad"
-	if dc == "js" {
-		dc = "s2"
-		nomadName = "nomad-js"
+	for _, dc := range dcs {
+		log.Info("Deploying service %s to dacenter %s", w.service, dc)
+		// temporary fix until switch is made
+		nomadName := "nomad"
+		ndc := dc // datacenter used to query nomad from consul
+		if ndc == "js" {
+			ndc = "s2"
+			nomadName = "nomad-js"
+		}
+		address := w.getServiceAddressByTag("http", nomadName, ndc)
+		d := NewDeployer(w.root, w.service, w.image, w.depConfig, address, dc)
+		w.deployer = d
+		if err := d.Go(); err != nil {
+			return err
+		}
 	}
-	address := w.getServiceAddressByTag("http", nomadName, dc)
-	d := NewDeployer(w.root, w.service, w.image, w.depConfig, address)
-	w.deployer = d
-	return d.Go()
+	return nil
 }
 
 func (w *Worker) pull() error {

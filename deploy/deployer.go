@@ -29,16 +29,18 @@ type Deployer struct {
 	jobDeploymentID string
 	region          string
 	dc              string
+	cdc             string // datacenter set in config file for service
 }
 
 // NewDeployer is used to create new deployer
-func NewDeployer(root, service, image string, config *DeploymentConfig, address string) *Deployer {
+func NewDeployer(root, service, image string, config *DeploymentConfig, address, cdc string) *Deployer {
 	return &Deployer{
 		root:    root,
 		service: service,
 		image:   image,
 		config:  config,
 		address: address,
+		cdc:     cdc,
 	}
 }
 
@@ -63,7 +65,7 @@ func (d *Deployer) Go() error {
 
 // checkServiceConfig - does config.yml exists in dc directory
 func (d *Deployer) checkServiceConfig() error {
-	if s := d.config.Find(d.service); s == nil {
+	if s := d.config.FindForDc(d.service, d.cdc); s == nil {
 		return fmt.Errorf("service %s not found in datacenter config", d.service)
 	}
 	return nil
@@ -323,7 +325,7 @@ func (d *Deployer) validate() error {
 	d.job.Region = &d.region
 	d.job.AddDatacenter(d.dc)
 
-	s := d.config.Find(d.service)
+	s := d.config.FindForDc(d.service, d.cdc)
 	if s.Node != "" {
 		d.job.Constrain(api.NewConstraint("${meta.node}", "=", s.Node))
 	}
