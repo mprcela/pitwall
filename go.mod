@@ -13,6 +13,7 @@ require (
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75 // indirect
 	github.com/gorilla/mux v1.7.1 // indirect
+	github.com/hashicorp/consul v1.4.4
 	github.com/hashicorp/go-plugin v1.0.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.5.3 // indirect
 	github.com/hashicorp/go-version v1.1.0 // indirect

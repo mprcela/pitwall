@@ -17,7 +17,6 @@ var (
 	dep      string
 	dc       string
 	noGit    bool
-	service  string
 	consul   string
 	image    string
 )
@@ -57,9 +56,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&path, "path", "~/work/pit/infrastructure", "infastructure project path")
 	rootCmd.PersistentFlags().StringVar(&consul, "consul", "http://consul.s2.minus5.hr", "consul url")
-	rootCmd.PersistentFlags().StringVar(&registry, "registry", "registry.dev.minus5.hr", "docker images registry url")
 	rootCmd.PersistentFlags().BoolVar(&noGit, "no-git", false, "don't pull/push to infrastructure repository")
-	rootCmd.PersistentFlags().StringVar(&image, "image", "", "deploy this image instead of selecting from registry")
 	//rootCmd.PersistentFlags().StringVarP(&dc, "dc", "d", "", "datacenter to deploy to")
 }
 

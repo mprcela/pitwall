@@ -29,4 +29,7 @@ func init() {
 
 	deployCmd.Flags().StringVarP(&dep, "dep", "d", "", "deployment to deploy to")
 	deployCmd.MarkFlagRequired("dep")
+
+	deployCmd.Flags().StringVar(&image, "image", "", "deploy this image instead of selecting from registry")
+	deployCmd.Flags().StringVar(&registry, "registry", "registry.dev.minus5.hr", "docker images registry url")
 }
