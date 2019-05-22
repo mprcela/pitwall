@@ -9,18 +9,15 @@ import (
 	"github.com/minus5/svckit/log"
 )
 
-const (
-=======
 // copying from https://github.com/hashicorp/nomad/blob/74c270d89a193ac6695e1116d4e25c681322cc98/nomad/structs/structs.go
 // i had a problem with including github.com/hashicorp/nomad/nomad/structs
 const (
 	JobTypeService             = "service"
 	DeploymentStatusRunning    = "running"
-DeploymentStatusSuccessful = "successful"
+	DeploymentStatusSuccessful = "successful"
 
-// FederatedDcsEnv is name of the environment variable containing datacenter names
-FederatedDcsEnv = "SVCKIT_FEDERATED_DCS"
-
+	// FederatedDcsEnv is name of the environment variable containing datacenter names
+	FederatedDcsEnv = "SVCKIT_FEDERATED_DCS"
 )
 
 //Deployer has all deployment related objects
