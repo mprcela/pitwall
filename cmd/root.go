@@ -14,6 +14,7 @@ import (
 var (
 	path     string
 	registry string
+	dep      string
 	dc       string
 	noGit    bool
 	service  string

@@ -9,7 +9,7 @@ import (
 
 var deployCmd = &cobra.Command{
 	Use:   "deploy <service>",
-	Short: "Deploys service to a datacenter",
+	Short: "Deploys service to a deployment",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 1 {
@@ -20,13 +20,13 @@ var deployCmd = &cobra.Command{
 		if len(args) == 1 {
 			service = args[0]
 		}
-		deploy.Run(dc, service, path, registry, image, noGit, consul, dc)
+		deploy.Run(dep, service, path, registry, image, noGit, consul)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(deployCmd)
 
-	deployCmd.Flags().StringVarP(&dc, "dc", "d", "", "datacenter to deploy to")
-	deployCmd.MarkFlagRequired("dc")
+	deployCmd.Flags().StringVarP(&dep, "dep", "d", "", "deployment to deploy to")
+	deployCmd.MarkFlagRequired("dep")
 }

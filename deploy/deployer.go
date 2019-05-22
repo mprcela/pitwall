@@ -10,13 +10,18 @@ import (
 	"github.com/minus5/svckit/log"
 )
 
+const (
+	// FederatedDcsEnv is name of the environment variable containing datacenter names
+	FederatedDcsEnv = "SVCKIT_FEDERATED_DCS"
+)
+
 //Deployer has all deployment related objects
 type Deployer struct {
 	root            string
 	service         string
 	image           string
 	address         string
-	config          *DcConfig
+	config          *DeploymentConfig
 	job             *api.Job
 	cli             *api.Client
 	jobModifyIndex  uint64
@@ -24,16 +29,18 @@ type Deployer struct {
 	jobDeploymentID string
 	region          string
 	dc              string
+	cdc             string // datacenter set in config file for service
 }
 
 // NewDeployer is used to create new deployer
-func NewDeployer(root, service, image string, config *DcConfig, address string) *Deployer {
+func NewDeployer(root, service, image string, config *DeploymentConfig, address, cdc string) *Deployer {
 	return &Deployer{
 		root:    root,
 		service: service,
 		image:   image,
 		config:  config,
 		address: address,
+		cdc:     cdc,
 	}
 }
 
@@ -58,7 +65,7 @@ func (d *Deployer) Go() error {
 
 // checkServiceConfig - does config.yml exists in dc directory
 func (d *Deployer) checkServiceConfig() error {
-	if _, ok := d.config.Services[d.service]; !ok {
+	if s := d.config.FindForDc(d.service, d.cdc); s == nil {
 		return fmt.Errorf("service %s not found in datacenter config", d.service)
 	}
 	return nil
@@ -318,10 +325,7 @@ func (d *Deployer) validate() error {
 	d.job.Region = &d.region
 	d.job.AddDatacenter(d.dc)
 
-	s := d.config.Services[d.service]
-	if s.HostGroup != "" {
-		d.job.Constrain(api.NewConstraint("${meta.hostgroup}", "=", s.HostGroup))
-	}
+	s := d.config.FindForDc(d.service, d.cdc)
 	if s.Node != "" {
 		d.job.Constrain(api.NewConstraint("${meta.node}", "=", s.Node))
 	}
@@ -334,6 +338,20 @@ func (d *Deployer) validate() error {
 			for _, ta := range tg.Tasks {
 				if ta.Name == d.service {
 					ta.Config["image"] = d.image
+					if s.CPU != 0 {
+						ta.Resources.CPU = &s.CPU
+					}
+					if s.Memory != 0 {
+						ta.Resources.MemoryMB = &s.Memory
+					}
+					if d.config.FederatedDcs != "" {
+						ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
+					}
+					for k, v := range s.Environment {
+						if v != "" {
+							ta.Env[k] = v
+						}
+					}
 					s.Image = d.image
 				}
 			}
