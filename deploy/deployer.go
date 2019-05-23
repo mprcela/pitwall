@@ -13,6 +13,8 @@ import (
 const (
 	// FederatedDcsEnv is name of the environment variable containing datacenter names
 	FederatedDcsEnv = "SVCKIT_FEDERATED_DCS"
+	// DeploymentEnv is name of the environment variable containing deployment name
+	DeploymentEnv = "deployment"
 )
 
 //Deployer has all deployment related objects
@@ -30,17 +32,19 @@ type Deployer struct {
 	region          string
 	dc              string
 	cdc             string // datacenter set in config file for service
+	deployment      string
 }
 
 // NewDeployer is used to create new deployer
-func NewDeployer(root, service, image string, config *DeploymentConfig, address, cdc string) *Deployer {
+func NewDeployer(root, service, image string, config *DeploymentConfig, address, cdc, deployment string) *Deployer {
 	return &Deployer{
-		root:    root,
-		service: service,
-		image:   image,
-		config:  config,
-		address: address,
-		cdc:     cdc,
+		root:       root,
+		service:    service,
+		image:      image,
+		config:     config,
+		address:    address,
+		cdc:        cdc,
+		deployment: deployment,
 	}
 }
 
@@ -349,6 +353,9 @@ func (d *Deployer) validate() error {
 					}
 					if d.config.FederatedDcs != "" {
 						ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
+					}
+					if d.deployment != "" {
+						ta.Env[DeploymentEnv] = d.deployment
 					}
 					for k, v := range s.Environment {
 						if v != "" {
