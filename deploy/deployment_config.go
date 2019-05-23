@@ -118,6 +118,7 @@ func (c *DeploymentConfig) load() error {
 type ServiceConfig struct {
 	Image       string
 	Count       int               `yaml:"count,omitempty"`
+	HostGroup   string            `yaml:"hostgroup,omitempty"`
 	Node        string            `yaml:"node,omitempty"`
 	CPU         int               `yaml:"cpu,omitempty"`
 	Memory      int               `yaml:"mem,omitempty"`
