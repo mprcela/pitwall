@@ -93,7 +93,7 @@ func (w *Worker) deploy() error {
 			nomadName = "nomad-js"
 		}
 		address := w.getServiceAddressByTag("http", nomadName, ndc)
-		d := NewDeployer(w.root, w.service, w.image, w.depConfig, address, dc)
+		d := NewDeployer(w.root, w.service, w.image, w.depConfig, address, dc, w.deployment)
 		w.deployer = d
 		if err := d.Go(); err != nil {
 			return err
