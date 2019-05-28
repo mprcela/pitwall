@@ -342,28 +342,31 @@ func (d *Deployer) validate() error {
 			if s.Count > 0 {
 				tg.Count = &s.Count
 			}
+
 			for _, ta := range tg.Tasks {
 				if ta.Name == d.service {
 					ta.Config["image"] = d.image
-					if s.CPU != 0 {
-						ta.Resources.CPU = &s.CPU
-					}
-					if s.Memory != 0 {
-						ta.Resources.MemoryMB = &s.Memory
-					}
-					if d.config.FederatedDcs != "" {
-						ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
-					}
-					if d.deployment != "" {
-						ta.Env[DeploymentEnv] = d.deployment
-					}
-					for k, v := range s.Environment {
-						if v != "" {
-							ta.Env[k] = v
-						}
-					}
 					s.Image = d.image
 				}
+
+				if s.CPU != 0 {
+					ta.Resources.CPU = &s.CPU
+				}
+				if s.Memory != 0 {
+					ta.Resources.MemoryMB = &s.Memory
+				}
+				if d.config.FederatedDcs != "" {
+					ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
+				}
+				if d.deployment != "" {
+					ta.Env[DeploymentEnv] = d.deployment
+				}
+				for k, v := range s.Environment {
+					if v != "" {
+						ta.Env[k] = v
+					}
+				}
+
 			}
 		}
 	}
