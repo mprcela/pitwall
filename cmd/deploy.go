@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"github.com/minus5/pitwall/deploy"
 	_ "github.com/minus5/svckit/dcy/lazy"
 
-	"github.com/minus5/pitwall/deploy"
 	"github.com/spf13/cobra"
 )
 
@@ -29,4 +29,7 @@ func init() {
 
 	deployCmd.Flags().StringVarP(&dep, "dep", "d", "", "deployment to deploy to")
 	deployCmd.MarkFlagRequired("dep")
+
+	deployCmd.Flags().StringVar(&image, "image", "", "deploy this image instead of selecting from registry")
+	deployCmd.Flags().StringVar(&registry, "registry", "registry.dev.minus5.hr", "docker images registry url")
 }

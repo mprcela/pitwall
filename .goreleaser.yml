@@ -1,0 +1,41 @@
+# Make sure to check the documentation at http://goreleaser.com
+project_name: pitwall
+
+builds:
+- env:
+    - CGO_ENABLED=0
+  # GOOS list to build for.
+  # For more info refer to: https://golang.org/doc/install/source#environment
+  # Defaults are darwin and linux.
+  goos:
+    - darwin
+  # GOARCH to build for.
+  # For more info refer to: https://golang.org/doc/install/source#environment
+  # Defaults are 386 and amd64.
+  goarch:
+    - amd64
+
+# release:
+#   # Repo in which the release will be created.
+#   # Default is extracted from the origin remote URL.
+#   github:
+#     owner: minus5
+#     name: homebrew-tap
+
+brew:
+  # Repository to push the tap to.
+  github:
+    owner: minus5
+    name: homebrew-tap
+
+  description: "minus5 infrastructre entry point"
+  download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
+  custom_require: ../download_strategy
+
+  # Git author used to commit to the repository.
+  commit_author:
+    name: deploy
+    email: info@minus5.hr
+
+  # Folder inside the repository to put the formula.
+  folder: Formula
