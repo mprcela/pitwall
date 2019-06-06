@@ -17,7 +17,7 @@ import (
 // povezati s deploy-erom
 
 // Run deployment process
-func Run(deployment, service, path, registry, image string, noGit bool, consul string) {
+func Run(deployment, service, path, registry, image string, noGit bool, consul string, dryRun bool) {
 	l := newTerminalLogger()
 	defer l.Close()
 	w := Worker{
@@ -28,6 +28,7 @@ func Run(deployment, service, path, registry, image string, noGit bool, consul s
 		image:       image,
 		noGit:       noGit,
 		consul:      consul,
+		dryRun:      dryRun,
 	}
 
 	if err := w.Go(); err != nil {
@@ -47,6 +48,7 @@ type Worker struct {
 	consul      string
 	consulDc    string
 	noGit       bool
+	dryRun      bool
 
 	depConfig     *DeploymentConfig
 	serviceConfig *ServiceConfig
@@ -95,7 +97,7 @@ func (w *Worker) deploy() error {
 		address := w.getServiceAddressByTag("http", nomadName, ndc)
 		d := NewDeployer(w.root, w.service, w.image, w.depConfig, address, dc, w.deployment)
 		w.deployer = d
-		if err := d.Go(); err != nil {
+		if err := d.Go(w.dryRun); err != nil {
 			return err
 		}
 	}

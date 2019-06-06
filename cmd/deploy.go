@@ -20,9 +20,11 @@ var deployCmd = &cobra.Command{
 		if len(args) == 1 {
 			service = args[0]
 		}
-		deploy.Run(dep, service, path, registry, image, noGit, consul)
+		deploy.Run(dep, service, path, registry, image, noGit, consul, dryRun)
 	},
 }
+
+var dryRun bool
 
 func init() {
 	rootCmd.AddCommand(deployCmd)
@@ -32,4 +34,6 @@ func init() {
 
 	deployCmd.Flags().StringVar(&image, "image", "", "deploy this image instead of selecting from registry")
 	deployCmd.Flags().StringVar(&registry, "registry", "registry.dev.minus5.hr", "docker images registry url")
+
+	deployCmd.Flags().BoolVar(&dryRun, "dry", false, "do not make changes, show what you will do")
 }

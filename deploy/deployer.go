@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -60,16 +61,30 @@ func NewDeployer(root, service, image string, config *DeploymentConfig, address,
 // plan - dry-run a job update to determine its effects
 // register - register a job to scheduler
 // status - status of the submited job
-func (d *Deployer) Go() error {
+func (d *Deployer) Go(dryRun bool) error {
 	steps := []func() error{
 		d.loadServiceConfig,
 		d.connect,
 		d.validate,
-		d.plan,
-		d.register,
-		d.status,
+	}
+	if dryRun {
+		steps = append(steps, d.show)
+	} else {
+		steps = append(steps,
+			[]func() error{
+				d.plan,
+				d.register,
+				d.status,
+			}...)
 	}
 	return runSteps(steps)
+}
+
+func (d *Deployer) show() error {
+	log.Info("show")
+	buf, _ := json.MarshalIndent(d.job, "  ", "  ")
+	fmt.Printf("%s\n", buf)
+	return nil
 }
 
 // checkServiceConfig - does config.yml exists in dc directory
@@ -332,6 +347,7 @@ func (d *Deployer) connect() error {
 func (d *Deployer) validate() error {
 
 	d.job.Region = &d.region
+	d.job.Datacenters = []string{}
 	d.job.AddDatacenter(d.dc)
 
 	s := d.config.FindForDc(d.service, d.cdc)
@@ -343,36 +359,43 @@ func (d *Deployer) validate() error {
 	}
 
 	for _, tg := range d.job.TaskGroups {
-		if *tg.Name == d.service {
-			if s.Count > 0 {
-				tg.Count = &s.Count
+		if !(*tg.Name == d.service || *tg.Name == "services") {
+			continue
+		}
+		if s.Count > 0 {
+			tg.Count = &s.Count
+			log.I("count", s.Count).Debug("setting")
+		}
+
+		for _, ta := range tg.Tasks {
+			if !(ta.Name == d.service || ta.Name == "service") {
+				continue
+			}
+			ta.Config["image"] = d.image
+			s.Image = d.image
+			log.S("image", s.Image).Debug("setting")
+
+			if s.CPU != 0 {
+				ta.Resources.CPU = &s.CPU
+				log.I("cpu", s.CPU).Debug("setting")
+			}
+			if s.Memory != 0 {
+				ta.Resources.MemoryMB = &s.Memory
+				log.I("memory", s.Memory).Debug("setting")
+			}
+			if d.config.FederatedDcs != "" {
+				ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
+			}
+			if d.deployment != "" {
+				ta.Env[DeploymentEnv] = d.deployment
+			}
+			for k, v := range s.Environment {
+				if v != "" {
+					ta.Env[k] = v
+					log.S(k, v).Debug("setting env")
+				}
 			}
 
-			for _, ta := range tg.Tasks {
-				if ta.Name == d.service {
-					ta.Config["image"] = d.image
-					s.Image = d.image
-				}
-
-				if s.CPU != 0 {
-					ta.Resources.CPU = &s.CPU
-				}
-				if s.Memory != 0 {
-					ta.Resources.MemoryMB = &s.Memory
-				}
-				if d.config.FederatedDcs != "" {
-					ta.Env[FederatedDcsEnv] = d.config.FederatedDcs
-				}
-				if d.deployment != "" {
-					ta.Env[DeploymentEnv] = d.deployment
-				}
-				for k, v := range s.Environment {
-					if v != "" {
-						ta.Env[k] = v
-					}
-				}
-
-			}
 		}
 	}
 
