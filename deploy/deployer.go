@@ -337,6 +337,10 @@ func (d *Deployer) validate() error {
 		d.job.Constrain(api.NewConstraint("${meta.node}", "=", s.Node))
 	}
 
+	if s.Canary != nil {
+		d.job.Update.Canary = s.Canary
+	}
+
 	for _, tg := range d.job.TaskGroups {
 		if *tg.Name == d.service {
 			if s.Count > 0 {
@@ -347,6 +351,9 @@ func (d *Deployer) validate() error {
 				if ta.Name == d.service {
 					ta.Config["image"] = d.image
 					s.Image = d.image
+					if len(s.Args) > 0 {
+						ta.Config["args"] = s.Args
+					}
 				}
 
 				if s.CPU != 0 {
